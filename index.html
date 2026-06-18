@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta name="theme-color" content="#1e2d5a"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="Humanity Obras"/>
+  <title>Humanity Engenharia — Gestão de Obras</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="icon-16.png"/>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #f8fafc; font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-text-size-adjust: 100%; }
+    #root { height: 100%; min-height: 100dvh; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    * { -webkit-tap-highlight-color: transparent; }
+    #splash { display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; gap: 16px; background: #fff; }
+  </style>
+</head>
+<body>
+
+  <!-- Splash enquanto carrega -->
+  <div id="splash">
+    <svg height="72" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="219" cy="60"  r="18" fill="#1e2d5a"/><circle cx="385" cy="62"  r="18" fill="#1e2d5a"/>
+      <circle cx="136" cy="106" r="18" fill="#1e2d5a"/><circle cx="299" cy="108" r="18" fill="#1e2d5a"/><circle cx="468" cy="107" r="18" fill="#1e2d5a"/>
+      <circle cx="218" cy="156" r="18" fill="#1e2d5a"/><circle cx="385" cy="156" r="18" fill="#1e2d5a"/>
+      <circle cx="131" cy="203" r="18" fill="#1e2d5a"/><circle cx="301" cy="205" r="32" fill="#1e2d5a"/><circle cx="468" cy="204" r="18" fill="#1e2d5a"/>
+      <circle cx="50"  cy="251" r="18" fill="#1e2d5a"/><circle cx="219" cy="251" r="32" fill="#1e2d5a"/><circle cx="386" cy="253" r="32" fill="#1e2d5a"/><circle cx="550" cy="252" r="18" fill="#1e2d5a"/>
+      <circle cx="135" cy="300" r="18" fill="#1e2d5a"/><circle cx="302" cy="300" r="32" fill="#1e2d5a"/><circle cx="468" cy="300" r="18" fill="#1e2d5a"/>
+      <circle cx="51"  cy="347" r="18" fill="#1e2d5a"/><circle cx="218" cy="348" r="32" fill="#1e2d5a"/><circle cx="385" cy="347" r="32" fill="#1e2d5a"/><circle cx="548" cy="347" r="18" fill="#1e2d5a"/>
+      <circle cx="131" cy="397" r="18" fill="#1e2d5a"/><circle cx="301" cy="395" r="32" fill="#1e2d5a"/><circle cx="468" cy="396" r="18" fill="#1e2d5a"/>
+      <circle cx="218" cy="444" r="18" fill="#1e2d5a"/><circle cx="385" cy="444" r="18" fill="#1e2d5a"/>
+      <circle cx="136" cy="494" r="18" fill="#1e2d5a"/><circle cx="299" cy="492" r="18" fill="#1e2d5a"/><circle cx="468" cy="493" r="18" fill="#1e2d5a"/>
+      <circle cx="219" cy="540" r="18" fill="#1e2d5a"/><circle cx="385" cy="538" r="18" fill="#1e2d5a"/>
+    </svg>
+    <div style="font-size:22px;font-weight:800;color:#1e2d5a;letter-spacing:-0.5px">Humanity Engenharia</div>
+    <div style="font-size:13px;color:#94a3b8" id="splash-msg">Carregando sistema...</div>
+  </div>
+
+  <div id="root" style="display:none"></div>
+
+  <!-- 1) React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- 2) Supabase JS client oficial -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <!-- 3) Expõe hooks React como variáveis globais
+       obras.jsx não tem mais "import from react", então precisa desses globais -->
+  <script>
+    var useState   = React.useState;
+    var useEffect  = React.useEffect;
+    var useRef     = React.useRef;
+    var useCallback= React.useCallback;
+    var useMemo    = React.useMemo;
+  </script>
+
+  <!-- 4) Babel — transpila JSX -->
+  <script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
+
+  <!-- 5) Carrega, transpila e monta obras.jsx -->
+  <script>
+    document.getElementById('splash-msg').textContent = 'Conectando...';
+
+    fetch('obras.jsx')
+      .then(function(r) {
+        if (!r.ok) throw new Error('obras.jsx não encontrado (HTTP ' + r.status + ')');
+        return r.text();
+      })
+      .then(function(src) {
+        document.getElementById('splash-msg').textContent = 'Iniciando...';
+
+        // Transpila JSX → JS puro
+        var result = Babel.transform(src, {
+          presets: ['react']
+        });
+
+        // Captura export default
+        var code = result.code;
+        code = code.replace(/export\s+default\s+function\s+(\w+)/, 'window.__App__ = function $1');
+        code = code.replace(/exports\.default\s*=\s*(\w+)\s*;/, 'window.__App__ = $1;');
+        code = code.replace(/Object\.defineProperty\(exports.*?\n/g, '');
+
+        // Executa no contexto global
+        (new Function(code))();
+
+        // Monta o app React
+        var container = document.getElementById('root');
+        ReactDOM.createRoot(container).render(
+          React.createElement(window.__App__)
+        );
+
+        document.getElementById('splash').style.display = 'none';
+        container.style.display = 'block';
+      })
+      .catch(function(err) {
+        document.getElementById('splash').innerHTML =
+          '<div style="padding:32px;text-align:center;max-width:360px">' +
+          '<div style="font-size:40px;margin-bottom:16px">⚠️</div>' +
+          '<div style="font-size:17px;font-weight:700;color:#ef4444;margin-bottom:8px">Erro ao carregar</div>' +
+          '<div style="font-size:13px;color:#64748b;line-height:1.5">' + err.message + '</div>' +
+          '</div>';
+        console.error('Erro de carregamento:', err);
+      });
+  </script>
+
+  <!-- 6) PWA Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js').catch(function() {});
+      });
+    }
+  </script>
+
+</body>
+</html>
