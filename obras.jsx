@@ -1082,6 +1082,24 @@ function App(){
       nd[k]=v||defs[k];
      }
     }
+ // Sequência de atividades de 14/11/2026: acrescentada uma única vez por obra
+ const seqT=SEQ_TAREFAS_1411[chaveDef];
+ if(seqT&&!(await dbGet(obraId,"seq_tarefas_1411"))){
+  // Relê as atividades direto do banco: se a leitura falhar, não grava nada
+  // (evita sobrescrever a lista salva com uma lista vazia).
+  let lido=null;
+  try{
+   const r=await getDB().from("obra_data").select("valor").eq("obra_id",obraId).eq("chave","tarefas").limit(1);
+   if(!r.error)lido={valor:(r.data&&r.data[0])?r.data[0].valor:null};
+  }catch(e){}
+  if(lido){
+   const atual=Array.isArray(lido.valor)?lido.valor:(Array.isArray(nd.tarefas)?nd.tarefas:[]);
+   const ids={};atual.forEach(t=>{ids[t.id]=1;});
+   const novos=seqT.filter(t=>!ids[t.id]);
+   const m=atual.concat(novos);
+   if(await dbSet(obraId,"tarefas",m)){nd.tarefas=m;dbSet(obraId,"seq_tarefas_1411",true);}
+  }
+ }
  setD(nd);setLoading(false);
  })();
  },[obraId]);
@@ -6071,6 +6089,92 @@ const IT_MADALENA=[
  ["ATUALIZAR PCMSO/PGR","",800,"HUGO"],
  ["EMITIR CARTÕES DE BENEFÍCIO","",0,"HUGO"],
 ].map(([demanda,prazo,custo,resp],i)=>({id:"t"+(i+1),demanda,prazo,custo,resp,status:"pendente",obs:"",feitoEm:""}));
+
+// Sequência de atividades por obra (lista do Hugo de 14/11/2026, ordenada em sequência de execução).
+// Entra uma única vez em cada obra, no fim da aba Atividades, sem data ("a definir").
+const SEQ_TAREFAS_1411={
+ madalena:[
+  "FECHAR PINTOR",
+  "COMPRAR FIAÇÃO ELÉTRICA",
+  "COMPRAR FORRO DE PVC",
+  "CHEGAR QUADROS ELÉTRICOS",
+  "PODAR ÁRVORE",
+  "LIMPAR VEGETAÇÃO AO REDOR",
+  "INICIAR TROCA DE MADEIRAMENTO E TELHA",
+  "AJUSTE DE TELHADO (BLOCO 1)",
+  "FAZER JANELA ALTA DA ESCADA",
+  "FINALIZAR REBOCO EXTERNO",
+  "FINALIZAR KORODUR",
+  "COLOCAR TUBULAÇÃO DO AR-CONDICIONADO",
+  "INICIAR PINTURA",
+  "INSTALAR LUMINÁRIAS",
+  "INSTALAR TOMADAS E INTERRUPTORES",
+  "INSTALAR AR-CONDICIONADOS",
+  "ORGANIZAR CALÇADA AO REDOR",
+ ],
+ navegantes:[
+  "AVALIAR PROJETO ELÉTRICO",
+  "COBRAR REVISÃO HIDROSSANITÁRIA",
+  "VERIFICAR NECESSIDADE DE MATERIAL HIDROSSANITÁRIO",
+  "MANDAR FAZER QUADROS",
+  "COMPRAR MATERIAL ELÉTRICO",
+  "COMPRAR MADEIRAMENTO E FORRO PVC",
+  "COMPRAR TELHA CERÂMICA",
+  "COMPRAR CAIXAS D'ÁGUA",
+  "COMPRAR ROLDANAS",
+  "COMPRAR SELADOR PARA MADEIRA",
+  "COMPRAR MATERIAL DE PINTURA",
+  "ALUGAR LIXADEIRA",
+  "FAZER LIMPEZA DA VEGETAÇÃO",
+  "TROCAR ESTACAS DE DEFESA (2)",
+  "REFORÇO NOS ESTEIOS DA COBERTURA",
+  "TROCAR TELHADO DA PASSARELA",
+  "FAZER CALHA",
+  "AJUSTAR SISTEMA DE COLETA DE ÁGUA",
+  "FAZER ADAPTAÇÕES NAS SALAS (REMOÇÃO E CONSTRUÇÃO DE PAREDES)",
+  "AJUSTAR ÁREA ANEXA",
+  "COBRAR INSTALAÇÃO DE TÁBUAS TIPO ESCAMA",
+  "COBRAR INSTALAÇÃO DAS \"BANCADAS\" DO GUARDA-CORPO",
+  "ORGANIZAR AJUSTES DE PORTAS E JANELAS",
+  "INSTALAÇÃO DAS SPLITS",
+  "APLICAÇÃO DE VERNIZ EM TUDO",
+ ],
+ lote_d18:[
+  "COMPRAR TELHAS (DEFINIR MODELO)",
+  "PEGAR ORÇAMENTO DE PLACA SALAS",
+  "DESFORMAR CONCRETAGENS",
+  "FINALIZAR PILARES E VIGAS DA COBERTURA",
+  "FAZER LAJE DA COBERTURA",
+  "IMPERMEABILIZAÇÃO DA LAJE",
+  "INSTALAR CAIXA D'ÁGUA",
+  "FAZER MADEIRAMENTO DA COBERTURA",
+  "INSTALAR TELHAS",
+  "FAZER MURO DOS FUNDOS DO TERRENO",
+  "FINALIZAR CAIXAS ELÉTRICAS",
+  "FINALIZAR HIDROSSANITÁRIO",
+  "FAZER ATERRAMENTO",
+  "FAZER QUADRO ELÉTRICO",
+  "FINALIZAR E AJUSTAR REBOCO",
+  "FAZER CONTRAPISO 1º PAVIMENTO",
+  "FAZER RESTANTE DO CONTRAPISO DO TÉRREO",
+  "FAZER SOLEIRAS E PEITORIS",
+  "FAZER ACABAMENTOS DE PORTAS E JANELAS",
+  "LIMPEZA GERAL DA OBRA",
+ ],
+ crtr14:[
+  "MANDAR FAZER PELE DE VIDRO",
+  "MANDAR FAZER PORTÃO",
+  "COMPRAR REVESTIMENTO DO PISO E PAREDE (+ MATERIAL)",
+  "COMPRAR RODAPÉ",
+  "ASSENTAR REVESTIMENTOS",
+  "INSTALAR PORTAS",
+  "INSTALAR PELE DE VIDRO",
+  "INSTALAR PORTÃO",
+  "INSTALAR RODAPÉ",
+  "FINALIZAR PINTURA",
+ ],
+};
+Object.keys(SEQ_TAREFAS_1411).forEach(k=>{SEQ_TAREFAS_1411[k]=SEQ_TAREFAS_1411[k].map((d,i)=>({id:"seq1411_"+k+"_"+(i+1),demanda:String(i+1).padStart(2,"0")+" · "+d,prazo:"",custo:0,resp:"HUGO",status:"pendente",obs:"",feitoEm:""}));});
 
 const ST_TAREFA={
  pendente:{label:"A fazer",cor:"#64748b",bg:"#f1f5f9"},
