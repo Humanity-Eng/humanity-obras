@@ -559,7 +559,7 @@ const IE_DEFAULT=[
 
 // Obras que já vêm com dados cadastrados no código (planilha do cliente).
 // São inseridas na lista uma única vez, na primeira abertura após o deploy.
-const VERSAO="2026.10.01 · build 71";
+const VERSAO="2026.11.20 · build 76";
 
 // ── Identidade visual por obra ───────────────────────────────────────────────
 // A Maria Madalena Raad é executada pela Umaré Construções; todo documento e
@@ -848,6 +848,7 @@ function baixarPdfElemento(id,nome,paisagem,aoTerminar){
 const OBRAS_REF=[
  {id:"obra_madalena",nome:"EMEIF MADALENA RAAF — Reforma",cliente:"Prefeitura Municipal de Belém",local:"Belém/PA",inicio:"01/08/2026",contrato:1325492.54,status:"Em andamento"},
  {id:"obra_navegantes",nome:"UP NAVEGANTES — Reforma",cliente:"SEMEC — Secretaria Municipal de Educação",local:"Belém/PA",inicio:"01/10/2026",contrato:556002.64,status:"Em andamento"},
+ {id:"obra_paraclube",nome:"PARÁCLUBE — Muro do Campo de Futebol",cliente:"ParáClube",local:"Belém/PA",inicio:"23/11/2026",contrato:36738.17,status:"Em andamento"},
 ];
 const OBRAS_SEED=[{id:"lote_d18",nome:"LOTE D18 — Quinta das Orquídeas",cliente:"Marcelo Azevedo Costa",local:"Ananindeua/PA",inicio:"29/04/2026",contrato:750000,status:"Em andamento"}];
 
@@ -961,6 +962,11 @@ function App(){
  if(chaveDef==="navegantes"){
   defs.acomp=IA_NAVEGANTES;defs.custos=IC_NAVEGANTES;defs.rec=IR_NAVEGANTES;
   defs.crono={inicio:"01/10/2026",meses:3};
+ }
+ const CHAVES_PARACLUBE=["acomp","custos","crono","rec"];
+ if(chaveDef==="paraclube"){
+  defs.acomp=IA_PARACLUBE;defs.custos=IC_PARACLUBE;defs.rec=IR_PARACLUBE;
+  defs.crono={inicio:"23/11/2026",meses:1};
  }
  const nd={};
  for(const k of Object.keys(defs)){
@@ -2492,6 +2498,45 @@ const ORC_CRTR14={
  },
 };
 // Metadados por obra: cabeçalho e encargos aplicados sobre cada etapa
+// Parcelas do orçamento 012/2026: entrada de 30% na assinatura e quatro de 17,5% todo dia 20.
+const IR_PARACLUBE=[
+ {data:"Entrada — assinatura",venc:"23/11/2026",prev:11021.45,rec:0,obs:"30% na assinatura, no início da obra"},
+ {data:"2ª parcela",venc:"20/12/2026",prev:6429.18,rec:0,obs:"17,5%"},
+ {data:"3ª parcela",venc:"20/01/2027",prev:6429.18,rec:0,obs:"17,5%"},
+ {data:"4ª parcela",venc:"20/02/2027",prev:6429.18,rec:0,obs:"17,5%"},
+ {data:"5ª parcela",venc:"20/03/2027",prev:6429.18,rec:0,obs:"17,5%"},
+];
+// Custos reais da Umaré: preços de insumo e de mão de obra praticados na obra.
+const IC_PARACLUBE=[
+ ["MATERIAL","MATERIAL","TIJOLO CERÂMICO FURADO","milheiro",1.51,750,1132.50],
+ ["MATERIAL","MATERIAL","CIMENTO CP-II 50 KG","saca",38.5,52,2002.00],
+ ["MATERIAL","MATERIAL","AREIA MÉDIA LAVADA","m³",5,120,600.00],
+ ["MATERIAL","MATERIAL","SEIXO ROLADO","m³",2.5,260,650.00],
+ ["MATERIAL","MATERIAL","AÇO CA-50 Ø 10 MM","vergalhão",17,41,697.00],
+ ["MATERIAL","MATERIAL","AÇO CA-60 Ø 5 MM","vergalhão",19,13,247.00],
+ ["MATERIAL","MATERIAL","QUIMIKAL (ADITIVO IMPERMEABILIZANTE)","litro",15,12,180.00],
+ ["MATERIAL","MATERIAL","TÁBUA BRANCA PARA FÔRMA","dúzia",3,180,540.00],
+ ["MATERIAL","MATERIAL","PREGO","kg",10,20,200.00],
+ ["MÃO DE OBRA","MÃO DE OBRA","VIGAS (BALDRAME + AMARRAÇÃO)","m",31,150,4650.00],
+ ["MÃO DE OBRA","MÃO DE OBRA","PILARES","und",3,300,900.00],
+ ["MÃO DE OBRA","MÃO DE OBRA","BLOCOS DE FUNDAÇÃO","und",3,300,900.00],
+ ["MÃO DE OBRA","MÃO DE OBRA","ALVENARIA","m²",57.35,35,2007.25],
+ ["MÃO DE OBRA","MÃO DE OBRA","CHAPISCO E REBOCO","m²",114.7,25,2867.50],
+ ["MÃO DE OBRA","MÃO DE OBRA","DEMOLIÇÃO E DESCARTE DO ENTULHO","vb",1,500,500.00],
+ ["ENCARGOS E TAXAS","ENCARGOS E TAXAS","ART DE EXECUÇÃO DE OBRA","vb",1,290,290.00],
+].map(([pav,cat,desc,und,qtd,unit,total])=>({pav,cat,desc,und,qtd,unit,total,pago:0,status:"pendente",forn:"",dataPag:""}));
+// Frentes de serviço para medição. Prazos somam os 20 dias corridos do contrato.
+const IA_PARACLUBE=[
+ {cod:"1.1",pav:"DEMOLIÇÕES E RETIRADAS",sec:"DEMOLIÇÕES E RETIRADAS",ativ:"DEMOLIÇÃO DO MURO EXISTENTE",total:1,und:"VB",prazo:1,acum:0,meds:[]},
+ {cod:"1.2",pav:"DEMOLIÇÕES E RETIRADAS",sec:"DEMOLIÇÕES E RETIRADAS",ativ:"RETIRADA E DESCARTE DO ENTULHO",total:1,und:"VB",prazo:1,acum:0,meds:[]},
+ {cod:"2.1",pav:"ESTRUTURA EM CONCRETO ARMADO",sec:"ESTRUTURA EM CONCRETO ARMADO",ativ:"BLOCOS DE FUNDAÇÃO",total:0.65,und:"M3",prazo:2,acum:0,meds:[]},
+ {cod:"2.2",pav:"ESTRUTURA EM CONCRETO ARMADO",sec:"ESTRUTURA EM CONCRETO ARMADO",ativ:"VIGA BALDRAME",total:15.5,und:"M",prazo:3,acum:0,meds:[]},
+ {cod:"2.3",pav:"ESTRUTURA EM CONCRETO ARMADO",sec:"ESTRUTURA EM CONCRETO ARMADO",ativ:"PILARES",total:3,und:"UND",prazo:2,acum:0,meds:[]},
+ {cod:"2.4",pav:"ESTRUTURA EM CONCRETO ARMADO",sec:"ESTRUTURA EM CONCRETO ARMADO",ativ:"VIGA DE AMARRAÇÃO",total:15.5,und:"M",prazo:2,acum:0,meds:[]},
+ {cod:"3.1",pav:"PAREDE",sec:"PAREDE",ativ:"ALVENARIA EM TIJOLO CERÂMICO",total:57.35,und:"M2",prazo:5,acum:0,meds:[]},
+ {cod:"3.2",pav:"PAREDE",sec:"PAREDE",ativ:"CHAPISCO",total:114.7,und:"M2",prazo:1.5,acum:0,meds:[]},
+ {cod:"3.3",pav:"PAREDE",sec:"PAREDE",ativ:"EMBOÇO / REBOCO",total:114.7,und:"M2",prazo:2.5,acum:0,meds:[]},
+];
 const ORC_META={
  lote_d18:{sub:"Proposta 060/2025 · SINAPI 11/2023 · BDI 12%"},
  madalena:{sub:"Prefeitura Municipal de Belém · SINAPI 06/2026 (Pará) · BDI 27,5% · encargos desonerados · 5 meses",
@@ -2499,6 +2544,8 @@ const ORC_META={
  navegantes:{sub:"SEMEC · Orçamento da obra + Aditivo nº 01 (R$ 49.765,62 — itens marcados ADITIVO 01)"},
  crtr14:{sub:"Proposta 005/2026 · SINAPI 11/2023 (Pará) · BDI 18% · NF 15% · prazo 75 dias corridos",bdi:0.18,nf:0.15,
   pagamento:"Entrada 30% (R$ 60.774,65) + 30% em 30 dias + 30% em 60 dias + 10% na conclusão (R$ 20.258,24)"},
+ paraclube:{sub:"Orçamento 012/2026 · ParáClube · reconstrução do muro do campo de futebol · BDI 18% · prazo 20 dias corridos",bdi:0.18,
+  pagamento:"Entrada 30% (R$ 11.021,45) em 23/11/2026 e quatro parcelas de 17,5% (R$ 6.429,18) todo dia 20, de dezembro a março"},
 };
 // Orçamentos por obra
 const ORC_POR_OBRA={lote_d18:ORC,crtr14:ORC_CRTR14,madalena:ORC_MADALENA,navegantes:ORC_NAVEGANTES};
@@ -2514,6 +2561,7 @@ function chaveObra(obraId,obra){
  if(nome.indexOf("MADALENA")>=0)return"madalena";
  if(nome.indexOf("CRTR14")>=0)return"crtr14";
  if(nome.indexOf("NAVEGANTES")>=0)return"navegantes";
+ if(nome.indexOf("PARCLUBE")>=0||nome.indexOf("PARACLUBE")>=0)return"paraclube";
  return null;
 }
 function chaveOrc(obraId,obra){
@@ -2522,12 +2570,28 @@ function chaveOrc(obraId,obra){
 }
 function Orcamento({obraId,obra}){
  const chave=chaveOrc(obraId,obra);
- const ORC=chave?ORC_POR_OBRA[chave]:null;
- const META=(chave&&ORC_META[chave])||{};
+ const noCodigo=chave?ORC_POR_OBRA[chave]:null;
+ // Obras cadastradas depois do ultimo deploy guardam o orcamento no banco,
+ // nas chaves "orcamento" e "orcamento_meta". O codigo tem preferencia.
+ const [doBanco,setDoBanco]=useState(null);
+ const [sel,setSel]=useState("Administrativo");
+ useEffect(()=>{
+  if(noCodigo||!obraId){setDoBanco(null);return;}
+  let vivo=true;
+  (async()=>{
+   const o=await dbGet(obraId,"orcamento");
+   const m=await dbGet(obraId,"orcamento_meta");
+   if(vivo&&o&&typeof o==="object"&&!Array.isArray(o)&&Object.keys(o).length>0){
+    setDoBanco({orc:o,meta:m&&typeof m==="object"?m:{}});
+   }
+  })();
+  return()=>{vivo=false;};
+ },[obraId,chave]);
+ const ORC=noCodigo||(doBanco&&doBanco.orc)||null;
+ const META=(chave&&ORC_META[chave])||(doBanco&&doBanco.meta)||{};
  const BDI=Number(META.bdi)||0;
  const NF=Number(META.nf)||0;
  const temOrc=!!ORC;
- const [sel,setSel]=useState("Administrativo");
  if(!temOrc)return(
   <div style={{textAlign:"center",padding:"60px 20px",color:"#94a3b8"}}>
    <div style={{fontSize:40,marginBottom:12}}>📋</div>
@@ -5730,6 +5794,11 @@ function dadosDaObra(obra,bruto){
   if(vazio(out.custos))out.custos=IC_MADALENA;
   if(vazio(out.rec))out.rec=IR_MADALENA;
   if(!out.crono||!out.crono.inicio)out.crono=Object.assign({inicio:"01/08/2026",meses:6},out.crono||{});
+ }else if(ch==="paraclube"){
+  if(vazio(out.acomp))out.acomp=IA_PARACLUBE;
+  if(vazio(out.custos))out.custos=IC_PARACLUBE;
+  if(vazio(out.rec))out.rec=IR_PARACLUBE;
+  if(!out.crono||!out.crono.inicio)out.crono=Object.assign({inicio:"23/11/2026",meses:1},out.crono||{});
  }else if(ch==="lote_d18"){
   if(vazio(out.acomp))out.acomp=IA;
   if(vazio(out.custos))out.custos=IC;
